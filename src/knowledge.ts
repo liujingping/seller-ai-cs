@@ -1,5 +1,5 @@
-// 店铺知识库 — 在这里填写你的店铺信息
-// Claude 会根据这些信息回答买家问题
+// Shop knowledge base — fill in your store details here.
+// Claude uses this information to answer buyer questions.
 
 export const SHOP_KNOWLEDGE = `
 ## 店铺基本信息

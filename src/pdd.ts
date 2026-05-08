@@ -2,7 +2,7 @@ import type { Env } from "./types";
 
 const PDD_API_URL = "https://gw-api.pinduoduo.com/api/router";
 
-// 拼多多API签名算法：client_secret + 按key排序的参数拼接 + client_secret → MD5大写
+// Pinduoduo API signature: MD5(client_secret + sorted key-value pairs + client_secret).toUpperCase()
 async function sign(
   params: Record<string, string>,
   clientSecret: string
@@ -15,7 +15,7 @@ async function sign(
   return (await md5Hex(raw)).toUpperCase();
 }
 
-// MD5 实现（Workers 兼容）
+// MD5 hash using Web Crypto API (Cloudflare Workers compatible)
 async function md5Hex(input: string): Promise<string> {
   const encoder = new TextEncoder();
   const data = encoder.encode(input);
@@ -25,7 +25,7 @@ async function md5Hex(input: string): Promise<string> {
     .join("");
 }
 
-// 发送客服消息给买家
+// Send a text message to the buyer via Pinduoduo API
 export async function sendMessage(
   uid: string,
   text: string,
@@ -37,9 +37,8 @@ export async function sendMessage(
     access_token: env.PDD_ACCESS_TOKEN,
     timestamp: Math.floor(Date.now() / 1000).toString(),
     data_type: "JSON",
-    // 消息参数
     session_id: uid,
-    message_type: "1", // 文本消息
+    message_type: "1", // text message
     content: JSON.stringify({ text }),
   };
 
@@ -60,7 +59,7 @@ export async function sendMessage(
   }
 }
 
-// 验证拼多多webhook签名
+// Verify the webhook signature from Pinduoduo
 export async function verifySign(
   body: Record<string, unknown>,
   clientSecret: string

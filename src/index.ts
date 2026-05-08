@@ -1,22 +1,22 @@
 import type { Env, PddWebhookBody } from "./types";
-import { askClaude } from "./claude";
+import { askClaude, getHistory, saveHistory } from "./claude";
 import { sendMessage } from "./pdd";
 
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
 
-    // 健康检查
+    // Health check
     if (url.pathname === "/" || url.pathname === "/health") {
       return new Response("pdd-ai-cs is running", { status: 200 });
     }
 
-    // 拼多多消息推送回调
+    // Pinduoduo message push webhook
     if (url.pathname === "/webhook" && request.method === "POST") {
       return handleWebhook(request, env);
     }
 
-    // 手动测试接口：POST /test {"message": "你好"}
+    // Manual test endpoint: POST /test {"message": "hello", "uid": "test-user"}
     if (url.pathname === "/test" && request.method === "POST") {
       return handleTest(request, env);
     }
@@ -25,7 +25,7 @@ export default {
   },
 };
 
-// 处理拼多多消息推送
+// Handle incoming Pinduoduo message push
 async function handleWebhook(
   request: Request,
   env: Env
@@ -39,28 +39,36 @@ async function handleWebhook(
 
   console.log("Webhook received:", JSON.stringify(body));
 
-  // 拼多多验证URL时会发一个验证请求，需要原样返回
+  // Pinduoduo sends a verify request when configuring the webhook URL
   if (body.type === "verify") {
     return Response.json({ success: true });
   }
 
-  // 处理买家消息
+  // Process buyer messages
   if (body.messages && body.messages.length > 0) {
     for (const msg of body.messages) {
       try {
         console.log(`Buyer ${msg.uid}: ${msg.text}`);
 
-        // 转人工检测
+        // Skip auto-reply if buyer requests a human agent
         if (shouldTransferToHuman(msg.text)) {
           console.log("Transfer to human detected, skipping auto-reply");
           continue;
         }
 
-        // 调用 Claude 生成回复
-        const reply = await askClaude(msg.text, env);
+        // Load conversation history
+        const history = await getHistory(msg.uid, env.CHAT_HISTORY);
+
+        // Generate reply with Claude
+        const reply = await askClaude(msg.text, env, history);
         console.log(`Reply to ${msg.uid}: ${reply}`);
 
-        // 通过拼多多API发送回复
+        // Persist conversation history
+        history.push({ role: "user", content: msg.text });
+        history.push({ role: "assistant", content: reply });
+        await saveHistory(msg.uid, history, env.CHAT_HISTORY);
+
+        // Send reply via Pinduoduo API
         await sendMessage(msg.uid, reply, env);
       } catch (err) {
         console.error(`Error handling message ${msg.msg_id}:`, err);
@@ -71,16 +79,16 @@ async function handleWebhook(
   return Response.json({ success: true });
 }
 
-// 本地测试接口 — 不调用拼多多API，只测试Claude回复
+// Local test endpoint — only tests Claude replies, does not call Pinduoduo API
 async function handleTest(
   request: Request,
   env: Env
 ): Promise<Response> {
-  let body: { message: string };
+  let body: { message: string; uid?: string };
   try {
-    body = (await request.json()) as { message: string };
+    body = (await request.json()) as { message: string; uid?: string };
   } catch {
-    return new Response("Bad Request: need {\"message\": \"...\"}", {
+    return new Response("Bad Request: need {\"message\": \"...\", \"uid\": \"...\"}", {
       status: 400,
     });
   }
@@ -89,9 +97,17 @@ async function handleTest(
     return Response.json({ error: "message is required" }, { status: 400 });
   }
 
+  const uid = body.uid || "test-user";
+
   try {
-    const reply = await askClaude(body.message, env);
-    return Response.json({ question: body.message, reply });
+    const history = await getHistory(uid, env.CHAT_HISTORY);
+    const reply = await askClaude(body.message, env, history);
+
+    history.push({ role: "user", content: body.message });
+    history.push({ role: "assistant", content: reply });
+    await saveHistory(uid, history, env.CHAT_HISTORY);
+
+    return Response.json({ uid, question: body.message, reply, turns: history.length / 2 });
   } catch (err) {
     return Response.json(
       { error: String(err) },
@@ -100,7 +116,7 @@ async function handleTest(
   }
 }
 
-// 检测是否需要转人工
+// Detect if buyer is requesting a human agent
 function shouldTransferToHuman(text: string): boolean {
   const keywords = ["转人工", "人工客服", "找人工", "真人客服"];
   return keywords.some((k) => text.includes(k));

@@ -1,30 +1,30 @@
-// 拼多多消息推送的webhook请求体
+// Pinduoduo webhook request body
 export interface PddWebhookBody {
-  // 消息类型
+  // Message type
   type: string;
-  // 时间戳
+  // Timestamp
   timestamp: number;
-  // 签名
+  // Signature
   sign?: string;
-  // 消息列表
+  // Message list
   messages?: PddMessage[];
 }
 
-// 拼多多买家消息
+// Pinduoduo buyer message
 export interface PddMessage {
-  // 会话ID
+  // Session ID
   tid: string;
-  // 买家ID
+  // Buyer ID
   uid: string;
-  // 消息内容
+  // Message content
   text: string;
-  // 消息ID
+  // Message ID
   msg_id: string;
-  // 消息时间
+  // Message timestamp
   ts: number;
 }
 
-// Claude API 请求/响应
+// Claude API request/response
 export interface ClaudeMessage {
   role: "user" | "assistant";
   content: string;
@@ -34,7 +34,7 @@ export interface ClaudeResponse {
   content: Array<{ type: string; text: string }>;
 }
 
-// Worker 环境变量
+// Worker environment bindings
 export interface Env {
   CLAUDE_API_KEY: string;
   CLAUDE_MODEL: string;
@@ -42,4 +42,5 @@ export interface Env {
   PDD_CLIENT_ID: string;
   PDD_CLIENT_SECRET: string;
   PDD_ACCESS_TOKEN: string;
+  CHAT_HISTORY: KVNamespace;
 }

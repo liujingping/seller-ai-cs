@@ -4,10 +4,13 @@ compatibility_date = "2024-05-12"
 
 # Secrets (set via `wrangler secret put`):
 #   CLAUDE_API_KEY    — Anthropic API key
-#   PDD_CLIENT_ID     — 拼多多开放平台 client_id
-#   PDD_CLIENT_SECRET — 拼多多开放平台 client_secret
-#   PDD_ACCESS_TOKEN  — 拼多多商家授权 access_token
+#   PDD_CLIENT_ID     — Pinduoduo Open Platform client_id
+#   PDD_CLIENT_SECRET — Pinduoduo Open Platform client_secret
+#   PDD_ACCESS_TOKEN  — Pinduoduo merchant access_token
 
 [vars]
 CLAUDE_MODEL = "claude-haiku-4.5"
-ANTHROPIC_BASE_URL = "https://copilot.ljp-copilot.workers.dev"
+
+[[kv_namespaces]]
+binding = "CHAT_HISTORY"
+id = "placeholder"
