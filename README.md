@@ -175,6 +175,48 @@ export class YourPlatformAdapter implements PlatformAdapter {
 }
 ```
 
+## Deployment Options
+
+There are two deployment paths depending on your network environment:
+
+### Option A: China-domestic (recommended for China-based shops)
+
+- **Runtime**: Alibaba Cloud Function Compute (free tier)
+- **LLM**: Qwen (通义千问 qwen-turbo, free) or other Chinese LLMs
+- **Pros**: Stable connectivity, fully free, no domain needed
+- **Status**: Runtime ready, LLM adapter TODO
+
+Setup:
+1. Register on [Alibaba Cloud](https://www.aliyun.com), create a Function Compute service
+2. Get a free Qwen API key from [DashScope](https://dashscope.console.aliyun.com)
+3. Deploy `src/runtimes/aliyun-fc.ts` as HTTP trigger function
+4. Set env vars: `CLAUDE_API_KEY` (or Qwen key), `CLAUDE_MODEL`, `SHOPS_CONFIG`
+5. Register on e-commerce open platform, configure webhook URL
+
+### Option B: Global (Cloudflare + Claude)
+
+- **Runtime**: Cloudflare Workers (free tier)
+- **LLM**: Claude API (Haiku, ~$10/month)
+- **Requires**: Custom domain (~10 RMB/year) to avoid `.workers.dev` being blocked in China
+- **Pros**: Best reply quality with Claude
+- **Status**: Fully implemented
+
+Setup:
+1. Buy a cheap domain (`.top`/`.xyz`, ~10 RMB/year)
+2. Add domain to Cloudflare, update NS records at registrar
+3. Bind custom domain to the Worker (Settings → Domains & Routes)
+4. `npx wrangler deploy`
+5. Register on e-commerce open platform, configure webhook URL with your custom domain
+
+### Key difference
+
+| | Option A (China) | Option B (Global) |
+|---|---|---|
+| LLM connectivity | Direct, stable | Requires custom domain |
+| LLM cost | Free (Qwen) | ~$10/month (Claude) |
+| Reply quality | Good | Best |
+| Setup complexity | Medium | Medium + domain setup |
+
 ## Cost estimate
 
 | Service            | Cost                                      |
