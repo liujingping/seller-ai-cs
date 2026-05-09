@@ -12,4 +12,4 @@ CLAUDE_MODEL = "claude-haiku-4.5"
 
 [[kv_namespaces]]
 binding = "CHAT_HISTORY"
-id = "placeholder"
+id = "08e813a272a042f5869673c56234d899"
