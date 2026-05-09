@@ -1,12 +1,11 @@
-name = "pdd-ai-cs"
+name = "seller-ai-cs"
 main = "src/index.ts"
 compatibility_date = "2024-05-12"
 
 # Secrets (set via `wrangler secret put`):
-#   CLAUDE_API_KEY    — Anthropic API key
-#   PDD_CLIENT_ID     — Pinduoduo Open Platform client_id
-#   PDD_CLIENT_SECRET — Pinduoduo Open Platform client_secret
-#   PDD_ACCESS_TOKEN  — Pinduoduo merchant access_token
+#   CLAUDE_API_KEY       — Anthropic API key
+#   SHOPS_CONFIG         — JSON array of shop configurations
+#   SHOP_*               — Per-shop credential secrets (referenced in SHOPS_CONFIG)
 
 [vars]
 CLAUDE_MODEL = "claude-haiku-4.5"

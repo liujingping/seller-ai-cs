@@ -1,7 +1,7 @@
-// Shop knowledge base — fill in your store details here.
-// Claude uses this information to answer buyer questions.
+// Default shop knowledge base template
+// Copy and customize per shop in SHOPS_CONFIG or in separate knowledge files
 
-export const SHOP_KNOWLEDGE = `
+export const DEFAULT_KNOWLEDGE = `
 ## 店铺基本信息
 - 店铺名称：（请填写你的店铺名）
 - 主营品类：（请填写）
